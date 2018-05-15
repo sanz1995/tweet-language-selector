@@ -49,6 +49,12 @@ public class LanguageSelector {
         rabbitTemplate.convertAndSend("language/"+lang,tweet.toString());
 
 
+        if(lang.equals("es")){
+            rabbitTemplate.convertAndSend("language/default",tweet.toString());
+
+        }
+
+
     }
 
 
