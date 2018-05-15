@@ -5,31 +5,28 @@ import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.RestTemplate;
 
 import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 @Component
 public class LanguageSelector {
 
     private static RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    private LanguageRepository lr;
-
 
     @Autowired
     private RabbitAdmin ra;
+
+
+    @Value( "es")
+    private String langSel;
+
+    @Autowired
+    private LanguageSelectionRepository lsr;
+
+
 
 
 
@@ -37,6 +34,11 @@ public class LanguageSelector {
         this.rabbitTemplate = rabbitTemplate;
     }
 
+
+    @Scheduled(fixedRate = 10000)
+    public void reportCurrentTime() {
+        langSel = lsr.findAll().iterator().next().getLanguage();
+    }
 
 
     public void receiveMessage(String message) {
@@ -49,7 +51,7 @@ public class LanguageSelector {
         rabbitTemplate.convertAndSend("language/"+lang,tweet.toString());
 
 
-        if(lang.equals("es")){
+        if(lang.equals(langSel)){
             rabbitTemplate.convertAndSend("language/default",tweet.toString());
 
         }
